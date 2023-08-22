@@ -7,6 +7,9 @@ import 'dart:math' show sqrt, cos, asin;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as loc;
 import 'package:location/location.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'main.dart';
 
 class NavScreen extends StatefulWidget {
   final double latitude;
@@ -44,7 +47,59 @@ class _NavScreenState extends State<NavScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return Scaffold(
+      body: sourcePosition == null ? const Center(child: CircularProgressIndicator()): Stack(
+        children: [
+          GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: curLocation,
+                zoom: 16,
+              ),
+            markers: {sourcePosition!, destinationPosition!},
+            onMapCreated: (GoogleMapController controller){
+              _controller.complete(controller);
+            },
+            onTap: (latlon){
+                if (kDebugMode) {
+                  print(latlon);
+                }
+            },
+            zoomControlsEnabled: false,
+            polylines: Set<Polyline>.of(polylines.values),
+
+          ),
+          Positioned(top: 30,
+            left: 15,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(Icons.arrow_back),
+            ),),
+          Positioned(
+              bottom: 10,
+              right: 10,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: const BoxDecoration(
+                    shape: BoxShape.circle, color: Colors.blue),
+                child: Center(
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.navigation_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: () async {
+                      await launchUrl(Uri.parse(
+                          'google.navigation:q=${widget.latitude}, ${widget.longitude}&key=$APIKEY'));
+                    },
+                  ),
+                ),
+              ))
+        ],
+      ),
+    );
   }
 
   getNavigation() async {
@@ -90,12 +145,10 @@ class _NavScreenState extends State<NavScreen> {
               icon: BitmapDescriptor.defaultMarkerWithHue(
                   BitmapDescriptor.hueBlue),
               position:
-              LatLng(currentLocation.latitude!, currentLocation.longitude!),
+                  LatLng(currentLocation.latitude!, currentLocation.longitude!),
               infoWindow: InfoWindow(
-                  title: '${double.parse(
-                      (getDistance(LatLng(widget.latitude, widget.longitude))
-                          .toStringAsFixed(2)))} km'
-              ),
+                  title:
+                      '${double.parse((getDistance(LatLng(widget.latitude, widget.longitude)).toStringAsFixed(2)))} km'),
               onTap: () {
                 print('market tapped');
               },
@@ -107,12 +160,15 @@ class _NavScreenState extends State<NavScreen> {
     }
   }
 
-  getDirections(LatLng distance) async{
+  getDirections(LatLng distance) async {
     List<LatLng> polylineCoordinates = [];
     List<dynamic> points = [];
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(APIKEY, PointLatLng(curLocation.latitude, curLocation.longitude),
-      PointLatLng(distance.latitude, distance.longitude), travelMode: TravelMode.driving);
-    if (result.points.isNotEmpty){
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        APIKEY,
+        PointLatLng(curLocation.latitude, curLocation.longitude),
+        PointLatLng(distance.latitude, distance.longitude),
+        travelMode: TravelMode.driving);
+    if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         points.add({'lat': point.latitude, 'lon': point.longitude});
@@ -125,14 +181,22 @@ class _NavScreenState extends State<NavScreen> {
     addPolyLine(polylineCoordinates);
   }
 
-  addPolyLine(List<LatLng> coordinates){
-    // Polyline id = PolylineId('poly');
+  addPolyLine(List<LatLng> coordinates) {
+    PolylineId id = const PolylineId('poly');
+    Polyline polyline = Polyline(
+      polylineId: id,
+      width: 5,
+      color: Colors.blue,
+      points: coordinates,
+    );
+    polylines[id] = polyline;
   }
 
-  double getDistance(LatLng disPosition){
+  double getDistance(LatLng disPosition) {
     return calculateDistance(curLocation.latitude, curLocation.longitude,
         disPosition.latitude, disPosition.longitude);
   }
+
   double calculateDistance(lat1, lon1, lat2, lon2) {
     var p = 0.017453292519943295;
     var c = cos;

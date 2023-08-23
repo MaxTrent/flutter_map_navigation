@@ -150,7 +150,9 @@ class _NavScreenState extends State<NavScreen> {
                   title:
                       '${double.parse((getDistance(LatLng(widget.latitude, widget.longitude)).toStringAsFixed(2)))} km'),
               onTap: () {
-                print('market tapped');
+                if (kDebugMode) {
+                  print('marker tapped');
+                }
               },
             );
           });

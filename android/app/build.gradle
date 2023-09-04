@@ -25,13 +25,18 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+//id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+
+
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
-def API_KEY = properties.getProperty('API_KEY')
+def API_KEY = properties.getProperty('MAPS_API_KEY')
 
 android {
     compileSdkVersion 33
     ndkVersion flutter.ndkVersion
+
+//    apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

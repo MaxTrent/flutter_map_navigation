@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
             const SizedBox(height: 20,),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                   onPressed: () {

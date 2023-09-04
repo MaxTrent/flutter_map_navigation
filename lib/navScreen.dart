@@ -33,7 +33,6 @@ class _NavScreenState extends State<NavScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getNavigation();
     addMarker();
@@ -48,57 +47,63 @@ class _NavScreenState extends State<NavScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: sourcePosition == null ? const Center(child: CircularProgressIndicator()): Stack(
-        children: [
-          GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: curLocation,
-                zoom: 16,
-              ),
-            markers: {sourcePosition!, destinationPosition!},
-            onMapCreated: (GoogleMapController controller){
-              _controller.complete(controller);
-            },
-            onTap: (latlon){
-                if (kDebugMode) {
-                  print(latlon);
-                }
-            },
-            zoomControlsEnabled: false,
-            polylines: Set<Polyline>.of(polylines.values),
-
-          ),
-          Positioned(top: 30,
-            left: 15,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: const Icon(Icons.arrow_back),
-            ),),
-          Positioned(
-              bottom: 10,
-              right: 10,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: const BoxDecoration(
-                    shape: BoxShape.circle, color: Colors.blue),
-                child: Center(
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.navigation_outlined,
-                      color: Colors.white,
-                    ),
-                    onPressed: () async {
-                      await launchUrl(Uri.parse(
-                          'google.navigation:q=${widget.latitude}, ${widget.longitude}&key=$APIKEY'));
-                    },
-                  ),
-                ),
-              ))
-        ],
+      appBar: AppBar(
+        title: const Text('Navigation Screen'),
       ),
+      body: sourcePosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: curLocation,
+                    zoom: 16,
+                  ),
+                  markers: {sourcePosition!, destinationPosition!},
+                  onMapCreated: (GoogleMapController controller) {
+                    _controller.complete(controller);
+                  },
+                  onTap: (latlon) {
+                    if (kDebugMode) {
+                      print(latlon);
+                    }
+                  },
+                  zoomControlsEnabled: false,
+                  polylines: Set<Polyline>.of(polylines.values),
+                ),
+                // Positioned(
+                //   top: 30,
+                //   left: 15,
+                //   child: GestureDetector(
+                //     onTap: () {
+                //       Navigator.pop(context);
+                //     },
+                //     child: const Icon(Icons.arrow_back),
+                //   ),
+                // ),
+                Positioned(
+                    bottom: 10,
+                    right: 10,
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(
+                          shape: BoxShape.circle, color: Colors.blue),
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.navigation_outlined,
+                            color: Colors.white,
+                          ),
+                          onPressed: () async {
+                            await launchUrl(Uri.parse(
+                                'google.navigation:q=${widget.latitude}, ${widget.longitude}&key=$APIKEY'));
+                          },
+                        ),
+                      ),
+                    ))
+              ],
+            ),
     );
   }
 
@@ -134,9 +139,9 @@ class _NavScreenState extends State<NavScreen> {
             target: LatLng(
                 _currentPosition!.latitude!, _currentPosition!.longitude!),
             zoom: 16)));
-        if (mounted) {
-          controller
-              ?.showMarkerInfoWindow(MarkerId(sourcePosition!.markerId.value));
+        if (mounted && sourcePosition != null) {
+          final markerId = sourcePosition!.markerId.value;
+          controller.showMarkerInfoWindow(MarkerId(sourcePosition!.markerId.value));
           setState(() {
             curLocation =
                 LatLng(currentLocation.latitude!, currentLocation.longitude!);
